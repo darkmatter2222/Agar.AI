@@ -27,9 +27,8 @@ build_new_model = False
 
 runs = 10
 
-tensor_board = tf.keras.callbacks.TensorBoard(log_dir=os.path.realpath('..') + "\\Logs\\{}".format(time.time()))
-
 for run in range(0, runs):
+    print(f'Run: {run}')
     if build_new_model:
         # Our input feature map is 200x200x3: 200x200 for the image pixels, and 3 for
         # the three color channels: R, G, and B
@@ -93,12 +92,13 @@ for run in range(0, runs):
             batch_size=5,
             class_mode='categorical')
 
-
+    tensor_board = tf.keras.callbacks.TensorBoard(log_dir=os.path.realpath('..') + "\\Logs\\{}".format(time.time()))
     model_save = tf.keras.callbacks.ModelCheckpoint(
         'N:\\Projects\\Agar.AI\\Models\\MultiClassBestCheckpoint.h5',
         monitor='val_loss', verbose=2, save_best_only=True, save_weights_only=False, mode='auto', save_freq='epoch')
     early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=0, verbose=2, mode='auto',
                                                   baseline=None, restore_best_weights=False)
+    early_term_on_nan = tf.keras.callbacks.TerminateOnNaN()
 
 
     classes = train_generator.class_indices
@@ -108,9 +108,9 @@ for run in range(0, runs):
 
     history = model.fit_generator(
           train_generator,
-          steps_per_epoch=100,  # 2000 images = batch_size * steps
+          steps_per_epoch=10,  # 2000 images = batch_size * steps
           epochs=6,
-          callbacks=[tensor_board, model_save, early_stop],
+          callbacks=[tensor_board, model_save, early_term_on_nan],
           validation_data=validation_generator,
           validation_steps=1,  # 1000 images = batch_size * steps
           verbose=1)
