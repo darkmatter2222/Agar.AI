@@ -11,21 +11,21 @@ import json
 
 
 # Pull in all data
-base_dir = 'E:\\Projects\\Agar.AI\\Training Data'
+base_dir = 'N:\\Projects\\Agar.AI\\Training Data'
 train_dir = os.path.join(base_dir, 'Train')
 validation_dir = os.path.join(base_dir, 'Validation')
 
 # Pull in all data
-base_dir = 'E:\\Projects\\Agar.AI\\Training Data'
+base_dir = 'N:\\Projects\\Agar.AI\\Training Data'
 train_dir = os.path.join(base_dir, 'Train')
 validation_dir = os.path.join(base_dir, 'Validation')
 
 ratio_multi = 2
 target_ratio = (192 * ratio_multi, 97 * ratio_multi)
 
-build_new_model = True
+build_new_model = False
 
-runs = 1
+runs = 10
 
 tensor_board = tf.keras.callbacks.TensorBoard(log_dir=os.path.realpath('..') + "\\Logs\\{}".format(time.time()))
 
@@ -69,10 +69,10 @@ for run in range(0, runs):
 
         model.compile(loss='categorical_crossentropy',
                       optimizer=RMSprop(lr=0.001),
-                      metrics=['acc'])
+                      metrics=['acc', 'val_acc'])
     else:
         # Load Model
-        model = tf.keras.models.load_model('E:\\Projects\\Agar.AI\\Models\\MultiClassBestCheckpoint.h5')
+        model = tf.keras.models.load_model('N:\\Projects\\Agar.AI\\Models\\MultiClassBestCheckpoint.h5')
 
     # All images will be rescaled by 1./255
     train_datagen = ImageDataGenerator(rescale=1./255)
@@ -95,14 +95,14 @@ for run in range(0, runs):
 
 
     model_save = tf.keras.callbacks.ModelCheckpoint(
-        'E:\\Projects\\Agar.AI\\Models\\MultiClassBestCheckpoint.h5',
+        'N:\\Projects\\Agar.AI\\Models\\MultiClassBestCheckpoint.h5',
         monitor='val_loss', verbose=2, save_best_only=True, save_weights_only=False, mode='auto', save_freq='epoch')
     early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=0, verbose=2, mode='auto',
                                                   baseline=None, restore_best_weights=False)
 
 
     classes = train_generator.class_indices
-    with open('E:\\Projects\\Agar.AI\\Models\\Classes.json', 'w') as outfile:
+    with open('N:\\Projects\\Agar.AI\\Models\\Classes.json', 'w') as outfile:
         json.dump(classes, outfile)
     print(classes)
 
@@ -115,4 +115,4 @@ for run in range(0, runs):
           validation_steps=1,  # 1000 images = batch_size * steps
           verbose=1)
 
-    model.save(f'E:\\Projects\\Agar.AI\\Models\\MultiClassV{run}.h5')
+    model.save(f'N:\\Projects\\Agar.AI\\Models\\MultiClassV{run}.h5')

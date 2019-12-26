@@ -6,7 +6,7 @@ import keyboard
 import uuid
 
 # create directories
-base_directory = 'E:\\Projects\\Agar.AI\\Training Data'
+base_directory = 'N:\\Projects\\Agar.AI\\Training Data'
 train_directory = '\\Train'
 validate_directory = '\\Validation'
 for d_name in range(0, 37):
