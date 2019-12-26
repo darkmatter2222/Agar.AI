@@ -20,86 +20,98 @@ base_dir = 'E:\\Projects\\Agar.AI\\Training Data'
 train_dir = os.path.join(base_dir, 'Train')
 validation_dir = os.path.join(base_dir, 'Validation')
 
-# Our input feature map is 200x200x3: 200x200 for the image pixels, and 3 for
-# the three color channels: R, G, and B
-img_input = layers.Input(shape=(1920, 970, 3))
+ratio_multi = 2
+target_ratio = (192 * ratio_multi, 97 * ratio_multi)
 
-# First convolution extracts 16 filters that are 3x3
-# Convolution is followed by max-pooling layer with a 2x2 window
-x = layers.Conv2D(16, 3, activation='relu')(img_input)
-x = layers.MaxPooling2D(2)(x)
+build_new_model = False
 
-# Second convolution extracts 32 filters that are 3x3
-# Convolution is followed by max-pooling layer with a 2x2 window
-x = layers.Conv2D(32, 3, activation='relu')(x)
-x = layers.MaxPooling2D(2)(x)
+runs = 10
 
-# Third convolution extracts 64 filters that are 3x3
-# Convolution is followed by max-pooling layer with a 2x2 window
-x = layers.Conv2D(64, 3, activation='relu')(x)
-x = layers.MaxPooling2D(2)(x)
+for run in range(0, runs):
+    if build_new_model:
+        # Our input feature map is 200x200x3: 200x200 for the image pixels, and 3 for
+        # the three color channels: R, G, and B
+        img_input = layers.Input(shape=(target_ratio[0], target_ratio[1], 3))
 
-# Flatten feature map to a 1-dim tensor so we can add fully connected layers
-x = layers.Flatten()(x)
+        # First convolution extracts 16 filters that are 3x3
+        # Convolution is followed by max-pooling layer with a 2x2 window
+        x = layers.Conv2D(16, 3, activation='relu')(img_input)
+        x = layers.MaxPooling2D(2)(x)
 
-# Create a fully connected layer with ReLU activation and 512 hidden units
-x = layers.Dense(512, activation='relu')(x)
+        # Second convolution extracts 32 filters that are 3x3
+        # Convolution is followed by max-pooling layer with a 2x2 window
+        x = layers.Conv2D(32, 3, activation='relu')(x)
+        x = layers.MaxPooling2D(2)(x)
 
-# Create output layer with a single node and sigmoid activation
-output = layers.Dense(37, activation='sigmoid')(x)
+        # Third convolution extracts 64 filters that are 3x3
+        # Convolution is followed by max-pooling layer with a 2x2 window
+        x = layers.Conv2D(64, 3, activation='relu')(x)
+        x = layers.MaxPooling2D(2)(x)
 
-# Create model:
-# input = input feature map
-# output = input feature map + stacked convolution/maxpooling layers + fully
-# connected layer + sigmoid output layer
-model = Model(img_input, output)
+        # Flatten feature map to a 1-dim tensor so we can add fully connected layers
+        x = layers.Flatten()(x)
 
-model.summary()
+        # Create a fully connected layer with ReLU activation and 512 hidden units
+        x = layers.Dense(512, activation='relu')(x)
 
-model.compile(loss='categorical_crossentropy',
-              optimizer=RMSprop(lr=0.001),
-              metrics=['acc'])
+        # Create output layer with a single node and sigmoid activation
+        output = layers.Dense(37, activation='sigmoid')(x)
 
+        # Create model:
+        # input = input feature map
+        # output = input feature map + stacked convolution/maxpooling layers + fully
+        # connected layer + sigmoid output layer
+        model = Model(img_input, output)
 
-# All images will be rescaled by 1./255
-train_datagen = ImageDataGenerator(rescale=1./255)
-val_datagen = ImageDataGenerator(rescale=1./255)
+        model.summary()
 
-# Flow training images in batches of 20 using train_datagen generator
-train_generator = train_datagen.flow_from_directory(
-        train_dir,  # This is the source directory for training images
-        target_size=(1920, 970),  # All images will be resized to 200x200
-        batch_size=5,
-        # Since we use binary_crossentropy loss, we need binary labels
-        class_mode='categorical')
-
-# Flow validation images in batches of 20 using val_datagen generator
-validation_generator = val_datagen.flow_from_directory(
-        validation_dir,
-        target_size=(1920, 970),
-        batch_size=5,
-        class_mode='categorical')
-
-tensor_board = tf.keras.callbacks.TensorBoard(log_dir=os.path.realpath('..')+"\\Logs\\{}".format(time.time()))
-model_save = tf.keras.callbacks.ModelCheckpoint(
-    'E:\\Projects\\Agar.AI\\Models\\MultiClassBestCheckpoint.h5',
-    monitor='acc', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', save_freq='epoch')
+        model.compile(loss='categorical_crossentropy',
+                      optimizer=RMSprop(lr=0.001),
+                      metrics=['acc'])
+    else:
+        # Load Model
+        model = tf.keras.models.load_model('E:\\Projects\\Agar.AI\\Models\\MultiClassBestCheckpoint.h5')
 
 
-classes = train_generator.class_indices
-with open('E:\\Projects\\Agar.AI\\Models\\Classes.json', 'w') as outfile:
-    json.dump(classes, outfile)
-print(classes)
+    # All images will be rescaled by 1./255
+    train_datagen = ImageDataGenerator(rescale=1./255)
+    val_datagen = ImageDataGenerator(rescale=1./255)
 
-history = model.fit_generator(
-      train_generator,
-      steps_per_epoch=100,  # 2000 images = batch_size * steps
-      epochs=6,
-      callbacks=[tensor_board, model_save],
-      #validation_data=validation_generator,
-      validation_steps=1,  # 1000 images = batch_size * steps
-      verbose=1)
+    # Flow training images in batches of 20 using train_datagen generator
+    train_generator = train_datagen.flow_from_directory(
+            train_dir,  # This is the source directory for training images
+            target_size=target_ratio,  # All images will be resized to 200x200
+            batch_size=5,
+            # Since we use binary_crossentropy loss, we need binary labels
+            class_mode='categorical')
+
+    # Flow validation images in batches of 20 using val_datagen generator
+    validation_generator = val_datagen.flow_from_directory(
+            validation_dir,
+            target_size=target_ratio,
+            batch_size=5,
+            class_mode='categorical')
+
+    tensor_board = tf.keras.callbacks.TensorBoard(log_dir=os.path.realpath('..')+"\\Logs\\{}".format(time.time()))
+    model_save = tf.keras.callbacks.ModelCheckpoint(
+        'E:\\Projects\\Agar.AI\\Models\\MultiClassBestCheckpoint.h5',
+        monitor='loss', verbose=2, save_best_only=True, save_weights_only=False, mode='auto', save_freq='epoch')
+
+
+    classes = train_generator.class_indices
+    with open('E:\\Projects\\Agar.AI\\Models\\Classes.json', 'w') as outfile:
+        json.dump(classes, outfile)
+    print(classes)
+
+    history = model.fit_generator(
+          train_generator,
+          steps_per_epoch=100,  # 2000 images = batch_size * steps
+          epochs=6,
+          callbacks=[tensor_board, model_save],
+          #validation_data=validation_generator,
+          validation_steps=1,  # 1000 images = batch_size * steps
+          verbose=1)
 
 
 
-model.save('E:\\Projects\\Agar.AI\\Models\\MultiClassV3.h5')
+    model.save(f'E:\\Projects\\Agar.AI\\Models\\MultiClassV{run}.h5')
