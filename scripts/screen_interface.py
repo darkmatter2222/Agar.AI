@@ -1,6 +1,10 @@
 import pyautogui
 
 
-def get_screen_by_range(left, top, width, height):
-    return pyautogui.screenshot(region=(left, top, width, height))
+class ScreenInterface:
+    def __init__(self):
+        print("in init")
+
+    def get_screen_by_range(self, left, top, width, height):
+        return pyautogui.screenshot(region=(left, top, width, height))
 

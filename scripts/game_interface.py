@@ -5,9 +5,13 @@ import math
 class GameInterface:
     center_x = 0
     center_y = 0
+    range_classifications = 0
 
     def __init__(self):
         print("in init")
+
+    def get_mouse_class(self):
+        return round(self.get_mouse_angle() / self.range_classifications)
 
     def get_mouse_angle(self):
         a = (self.center_x, self.center_y + -200)
