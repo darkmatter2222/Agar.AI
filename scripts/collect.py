@@ -35,8 +35,8 @@ while True:
         angle = GI.get_mouse_class()
         # 1080p screen, in chrome, bookmarks tab turned off.
         image = SI.get_screen_by_range(0, 80, 1920, 970)
-        target_train_directory = f'{base_directory}{train_directory}\\{angle}\\'
+        target_directory = f'{base_directory}{validate_directory}\\{angle}\\'
         generatedGUID = str(uuid.uuid1())
         print(angle)
-        image.save(target_train_directory + generatedGUID + '.png', 'png')
+        image.save(target_directory + generatedGUID + '.png', 'png')
 

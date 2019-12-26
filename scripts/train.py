@@ -23,9 +23,11 @@ validation_dir = os.path.join(base_dir, 'Validation')
 ratio_multi = 2
 target_ratio = (192 * ratio_multi, 97 * ratio_multi)
 
-build_new_model = False
+build_new_model = True
 
-runs = 10
+runs = 1
+
+tensor_board = tf.keras.callbacks.TensorBoard(log_dir=os.path.realpath('..') + "\\Logs\\{}".format(time.time()))
 
 for run in range(0, runs):
     if build_new_model:
@@ -59,7 +61,7 @@ for run in range(0, runs):
 
         # Create model:
         # input = input feature map
-        # output = input feature map + stacked convolution/maxpooling layers + fully
+        # output = input feature map + stacked convolution/max pooling layers + fully
         # connected layer + sigmoid output layer
         model = Model(img_input, output)
 
@@ -71,7 +73,6 @@ for run in range(0, runs):
     else:
         # Load Model
         model = tf.keras.models.load_model('E:\\Projects\\Agar.AI\\Models\\MultiClassBestCheckpoint.h5')
-
 
     # All images will be rescaled by 1./255
     train_datagen = ImageDataGenerator(rescale=1./255)
@@ -92,10 +93,12 @@ for run in range(0, runs):
             batch_size=5,
             class_mode='categorical')
 
-    tensor_board = tf.keras.callbacks.TensorBoard(log_dir=os.path.realpath('..')+"\\Logs\\{}".format(time.time()))
+
     model_save = tf.keras.callbacks.ModelCheckpoint(
         'E:\\Projects\\Agar.AI\\Models\\MultiClassBestCheckpoint.h5',
-        monitor='loss', verbose=2, save_best_only=True, save_weights_only=False, mode='auto', save_freq='epoch')
+        monitor='val_loss', verbose=2, save_best_only=True, save_weights_only=False, mode='auto', save_freq='epoch')
+    early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=0, verbose=2, mode='auto',
+                                                  baseline=None, restore_best_weights=False)
 
 
     classes = train_generator.class_indices
@@ -107,11 +110,9 @@ for run in range(0, runs):
           train_generator,
           steps_per_epoch=100,  # 2000 images = batch_size * steps
           epochs=6,
-          callbacks=[tensor_board, model_save],
-          #validation_data=validation_generator,
+          callbacks=[tensor_board, model_save, early_stop],
+          validation_data=validation_generator,
           validation_steps=1,  # 1000 images = batch_size * steps
           verbose=1)
-
-
 
     model.save(f'E:\\Projects\\Agar.AI\\Models\\MultiClassV{run}.h5')
