@@ -23,9 +23,9 @@ validation_dir = os.path.join(base_dir, 'Validation')
 ratio_multi = 2
 target_ratio = (192 * ratio_multi, 97 * ratio_multi)
 
-build_new_model = False
+build_new_model = True
 
-runs = 10
+runs = 1
 
 for run in range(0, runs):
     print(f'Run: {run}')
@@ -68,7 +68,7 @@ for run in range(0, runs):
 
         model.compile(loss='categorical_crossentropy',
                       optimizer=RMSprop(lr=0.001),
-                      metrics=['acc', 'val_acc'])
+                      metrics=['acc'])
     else:
         # Load Model
         model = tf.keras.models.load_model('N:\\Projects\\Agar.AI\\Models\\MultiClassBestCheckpoint.h5')
@@ -81,7 +81,7 @@ for run in range(0, runs):
     train_generator = train_datagen.flow_from_directory(
             train_dir,  # This is the source directory for training images
             target_size=target_ratio,  # All images will be resized to 200x200
-            batch_size=5,
+            batch_size=100,
             # Since we use binary_crossentropy loss, we need binary labels
             class_mode='categorical')
 
@@ -89,7 +89,7 @@ for run in range(0, runs):
     validation_generator = val_datagen.flow_from_directory(
             validation_dir,
             target_size=target_ratio,
-            batch_size=5,
+            batch_size=100,
             class_mode='categorical')
 
     tensor_board = tf.keras.callbacks.TensorBoard(log_dir=os.path.realpath('..') + "\\Logs\\{}".format(time.time()))
@@ -108,11 +108,11 @@ for run in range(0, runs):
 
     history = model.fit_generator(
           train_generator,
-          steps_per_epoch=10,  # 2000 images = batch_size * steps
+          steps_per_epoch=100,  # 2000 images = batch_size * steps
           epochs=6,
           callbacks=[tensor_board, model_save, early_term_on_nan],
           validation_data=validation_generator,
-          validation_steps=1,  # 1000 images = batch_size * steps
+          validation_steps=40,  # 1000 images = batch_size * steps
           verbose=1)
 
-    model.save(f'N:\\Projects\\Agar.AI\\Models\\MultiClassV{run}.h5')
+    model.save(f'N:\\Projects\\Agar.AI\\Models\\MultiClassV1.h5')
