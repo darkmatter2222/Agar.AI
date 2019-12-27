@@ -13,13 +13,19 @@ import math
 import datetime
 
 class custom_loss_check(tf.keras.callbacks.Callback):
+    def on_epoch_begin(self, epoch, logs=None):
+        print('Epoch Start, saving...')
+        self.model.save(f'N:\\Projects\\Agar.AI\\Models\\MultiClassEpochStart.h5')
+
     def on_epoch_end(self, epoch, logs=None):
-        if math.isnan(logs['loss']):
-            print('loss is NaN, stopping early')
+        if 'loss' not in logs or math.isnan(logs['loss']):
+            print('loss is NaN, stopping early, reverting to head model')
             self.model.stop_training = True
-        if math.isnan(logs['val_loss']):
-            print('val_loss is NaN, stopping early')
+            self.model = tf.keras.models.load_model('N:\\Projects\\Agar.AI\\Models\\MultiClassEpochStart.h5')
+        if 'val_loss' not in logs or math.isnan(logs['val_loss']):
+            print('val_loss is NaN, stopping early, reverting to head model')
             self.model.stop_training = True
+            self.model = tf.keras.models.load_model('N:\\Projects\\Agar.AI\\Models\\MultiClassEpochStart.h5')
 
 # Pull in all data
 base_dir = 'N:\\Projects\\Agar.AI\\Training Data'
@@ -34,9 +40,9 @@ validation_dir = os.path.join(base_dir, 'Validation')
 ratio_multi = 2
 target_ratio = (192 * ratio_multi, 97 * ratio_multi)
 
-build_new_model = True
+build_new_model = False
 
-runs = 1
+runs = 200
 
 for run in range(0, runs):
     print(f'Run: {run}')
@@ -120,10 +126,10 @@ for run in range(0, runs):
     history = model.fit_generator(
           train_generator,
           steps_per_epoch=100,  # 2000 images = batch_size * steps
-          epochs=60,
+          epochs=3,
           callbacks=[tensor_board, model_save, early_term_on_nan, custom_loss_check()],
           validation_data=validation_generator,
           validation_steps=40,  # 1000 images = batch_size * steps
           verbose=1)
 
-    model.save(f'N:\\Projects\\Agar.AI\\Models\\MultiClassV1Test.h5')
+    model.save(f'N:\\Projects\\Agar.AI\\Models\\MultiClassV1.h5')
