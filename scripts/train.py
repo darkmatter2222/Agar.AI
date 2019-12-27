@@ -22,27 +22,32 @@ class custom_loss_check(tf.keras.callbacks.Callback):
             print('loss is NaN, stopping early, reverting to head model')
             self.model.stop_training = True
             self.model = tf.keras.models.load_model('N:\\Projects\\Agar.AI\\Models\\MultiClassEpochStart.h5')
+
         if 'val_loss' not in logs or math.isnan(logs['val_loss']):
             print('val_loss is NaN, stopping early, reverting to head model')
             self.model.stop_training = True
             self.model = tf.keras.models.load_model('N:\\Projects\\Agar.AI\\Models\\MultiClassEpochStart.h5')
 
-# Pull in all data
-base_dir = 'N:\\Projects\\Agar.AI\\Training Data'
-train_dir = os.path.join(base_dir, 'Train')
-validation_dir = os.path.join(base_dir, 'Validation')
 
 # Pull in all data
 base_dir = 'N:\\Projects\\Agar.AI\\Training Data'
 train_dir = os.path.join(base_dir, 'Train')
 validation_dir = os.path.join(base_dir, 'Validation')
 
-ratio_multi = 2
+# Pull in all data
+base_dir = 'N:\\Projects\\Agar.AI\\Training Data'
+train_dir = os.path.join(base_dir, 'Train')
+validation_dir = os.path.join(base_dir, 'Validation')
+
+ratio_multi = 4
 target_ratio = (192 * ratio_multi, 97 * ratio_multi)
 
-build_new_model = False
+build_new_model = True
 
-runs = 200
+runs = 1
+
+if not build_new_model:
+    runs = 200
 
 for run in range(0, runs):
     print(f'Run: {run}')

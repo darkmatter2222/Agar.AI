@@ -49,7 +49,7 @@ while 1 == 1:
     prediction = model.predict(img)
     x, y = GI.set_mouse_pos(np.argmax(prediction)* 10)
     print(f'Angle:{np.argmax(prediction)* 10} X:{x} Y:{y}')
-    if keyboard.is_pressed('c'):
+    if keyboard.is_pressed('c') and prediction[0][np.argmax(prediction)] > 0.2:
         pyautogui.moveTo(x, y)
 
 
